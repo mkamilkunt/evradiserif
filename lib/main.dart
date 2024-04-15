@@ -12,11 +12,14 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock/wakelock.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
   await FlutterDownloader.initialize(debug: true);
+
   runApp(const MyAppStart());
   configLoading();
 }
@@ -58,10 +61,28 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String pathPDF = "";
-  String pathPDFTurk = "";
+  Future<String>? pathPDF;
+  Future<String>? pathPDFTurk;
+  late String filePDF;
+  late String filePDFtr;
 
   // fetch PDF files
+  // void fetchFiles() async {
+  //   var file1 = await fromAsset('assets/pdfFiles/evrad_AR.pdf', 'evrad_AR.pdf');
+  //   var file2 = await fromAsset('assets/pdfFiles/evrad_TR.pdf', 'evrad_TR.pdf');
+
+  //   if (mounted) {
+  //     setState(() {
+  //       // Your state change code goes here
+  //       print("Mounted state reached.");
+  //       pathPDF = file1.path;
+  //       pathPDFTurk = file2.path;
+  //     });
+  //   } else {
+  //     print("Mounted state not reached.");
+  //   }
+  // }
+
   void fetchFiles() async {
     var file1 = await fromAsset('assets/pdfFiles/evrad_AR.pdf', 'evrad_AR.pdf');
     var file2 = await fromAsset('assets/pdfFiles/evrad_TR.pdf', 'evrad_TR.pdf');
@@ -69,16 +90,24 @@ class _HomePageState extends State<HomePage> {
     if (mounted) {
       setState(() {
         // Your state change code goes here
-        pathPDF = file1.path;
-        pathPDFTurk = file2.path;
+        print("Mounted state reached.");
+        filePDF = file1.path;
+        filePDFtr = file2.path;
+        pathPDF = Future<String>.value(file1.path);
+        pathPDFTurk = Future<String>.value(file2.path);
       });
+    } else {
+      print("Mounted state not reached.");
     }
   }
 
   @override
   void initState() {
+    print("initstate called");
     super.initState();
+    print("calling fetchfiles");
     fetchFiles();
+    print("fetchfiles done");
   }
 
   Future<File> fromAsset(String asset, String filename) async {
@@ -101,11 +130,35 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return PDFScreen(
-      path: pathPDF,
-      pathTurk: pathPDFTurk,
-    );
+    print("build called");
+    FlutterNativeSplash.remove();
+    return pathPDF == null
+        ? const Text('PathPDF not set')
+        : FutureBuilder(
+            future: pathPDF,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return PDFScreen(
+                  path: filePDF,
+                  pathTurk: filePDFtr,
+                );
+              } else {
+                return const CircularProgressIndicator();
+              }
+            });
   }
+  // @override
+  // Widget build(BuildContext context) {
+  //   print("build called");
+  //   PDFScreen screen = PDFScreen(
+  //     path: pathPDF,
+  //     pathTurk: pathPDFTurk,
+  //   );
+  //   // FlutterNativeSplash.remove();
+  //   print("PDFScreen created");
+
+  //   return screen;
+  // }
   // Widget build(BuildContext context) {
   //   return Simple_splashscreen(
   //     context: context,
@@ -194,7 +247,7 @@ class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
   bool _isVisible = true;
   IconData icon = Icons.play_arrow;
   Color mealColor = Colors.white;
-  late UniqueKey pdfViewerKey;
+  UniqueKey pdfViewerKey = UniqueKey();
 
   bool pageplaying = false;
   bool iscreatedView = false;
@@ -3734,7 +3787,7 @@ class _AreyousureDialogState extends State<AreyousureDialog> {
       maskType: EasyLoadingMaskType.black,
     );
     downloadTask = (await FlutterDownloader.enqueue(
-        url: 'http://evradiserif.com/AppFiles/evrad.mp3',
+        url: 'https://evradiserif.com/AppFiles/evrad.mp3',
         savedDir: _localPath,
         showNotification: true))!;
     print('----------------------------------------------------');
