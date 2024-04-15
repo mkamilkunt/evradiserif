@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:toast/toast.dart';
@@ -8,7 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:simple_splashscreen/simple_splashscreen.dart';
+// import 'package:simple_splashscreen/simple_splashscreen.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -16,9 +15,9 @@ import 'package:wakelock/wakelock.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setEnabledSystemUIOverlays([]);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
   await FlutterDownloader.initialize(debug: true);
-  runApp(MyAppStart());
+  runApp(const MyAppStart());
   configLoading();
 }
 
@@ -39,17 +38,21 @@ void configLoading() {
 }
 
 class MyAppStart extends StatelessWidget {
+  const MyAppStart({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      home: const HomePage(),
       builder: EasyLoading.init(),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -63,7 +66,7 @@ class _HomePageState extends State<HomePage> {
     var file1 = await fromAsset('assets/pdfFiles/evrad_AR.pdf', 'evrad_AR.pdf');
     var file2 = await fromAsset('assets/pdfFiles/evrad_TR.pdf', 'evrad_TR.pdf');
 
-    if (this.mounted) {
+    if (mounted) {
       setState(() {
         // Your state change code goes here
         pathPDF = file1.path;
@@ -98,19 +101,27 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Simple_splashscreen(
-      context: context,
-      gotoWidget: PDFScreen(
-        path: pathPDF,
-        pathTurk: pathPDFTurk,
-      ),
-      splashscreenWidget: MyApp(),
-      timerInSeconds: 5,
+    return PDFScreen(
+      path: pathPDF,
+      pathTurk: pathPDFTurk,
     );
   }
+  // Widget build(BuildContext context) {
+  //   return Simple_splashscreen(
+  //     context: context,
+  //     gotoWidget: PDFScreen(
+  //       path: pathPDF,
+  //       pathTurk: pathPDFTurk,
+  //     ),
+  //     splashscreenWidget: const MyApp(),
+  //     timerInSeconds: 5,
+  //   );
+  // }
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
   _MyAppState createState() => _MyAppState();
 }
@@ -119,7 +130,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         image: DecorationImage(
           image: AssetImage("assets/images/splash.jpg"),
           fit: BoxFit.cover,
@@ -134,58 +145,61 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-MaterialColor themeColor = const MaterialColor(0xFF2D45CB, const {
-  50: const Color(0xFF2D45CB),
-  100: const Color(0xFF2D45CB),
-  200: const Color(0xFF2D45CB),
-  300: const Color(0xFF2D45CB),
-  400: const Color(0xFF2D45CB),
-  500: const Color(0xFF2D45CB),
-  600: const Color(0xFF2D45CB),
-  700: const Color(0xFF2D45CB),
-  800: const Color(0xFF2D45CB),
-  900: const Color(0xFF2D45CB)
+MaterialColor themeColor = const MaterialColor(0xFF2D45CB, {
+  50: Color(0xFF2D45CB),
+  100: Color(0xFF2D45CB),
+  200: Color(0xFF2D45CB),
+  300: Color(0xFF2D45CB),
+  400: Color(0xFF2D45CB),
+  500: Color(0xFF2D45CB),
+  600: Color(0xFF2D45CB),
+  700: Color(0xFF2D45CB),
+  800: Color(0xFF2D45CB),
+  900: Color(0xFF2D45CB)
 });
 
-  String downloadTask;
-  File soundfilePath;
-  bool hasSoundfilePath = false;
-  String _localPath;
-  var selectedDuration;
-  int currentPage = 248;
-  PDFViewController _Pdfcontroller;
-  bool isplayingControl = false;
+late String downloadTask;
+late File soundfilePath;
+bool hasSoundfilePath = false;
+late String _localPath;
+var selectedDuration;
+int currentPage = 248;
+late PDFViewController _Pdfcontroller;
+bool isplayingControl = false;
 
 class PDFScreen extends StatefulWidget {
   final String path;
   final String pathTurk;
 
-  PDFScreen({Key key, this.path, this.pathTurk}) : super(key: key);
+  const PDFScreen({Key? key, required this.path, required this.pathTurk})
+      : super(key: key);
 
+  @override
   _PDFScreenState createState() => _PDFScreenState();
 }
-final AssetsAudioPlayer _assetsAudioPlayer = AssetsAudioPlayer();
-class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
 
+final AssetsAudioPlayer _assetsAudioPlayer = AssetsAudioPlayer();
+
+class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
   final _key = GlobalKey<ScaffoldState>();
   int pages = 0;
 
-  var currentPageName = new Text("Evrad-ı Şerife",
+  var currentPageName = const Text("Evrad-ı Şerife",
       style: TextStyle(fontSize: 16, color: Colors.white));
-  var currentPageNumber =
-      new Text("1.Sayfa", style: TextStyle(fontSize: 11, color: Colors.white));
+  var currentPageNumber = const Text("1.Sayfa",
+      style: TextStyle(fontSize: 11, color: Colors.white));
   bool isReady = false;
   String errorMessage = '';
   double readSpeed = 1.0;
   bool _isVisible = true;
   IconData icon = Icons.play_arrow;
   Color mealColor = Colors.white;
-  UniqueKey pdfViewerKey;
+  late UniqueKey pdfViewerKey;
 
   bool pageplaying = false;
   bool iscreatedView = false;
   bool _switchLangToTurk = false;
-  int totalPages;
+  late int totalPages;
 
   var pageSoundDurations = [
     {
@@ -2435,16 +2449,16 @@ class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
   ];
 
   void getFilePath() async {
-    _localPath = (await _findLocalPath()) + Platform.pathSeparator + 'Download';
-    soundfilePath = File(_localPath + '/evrad.mp3');
+    _localPath = '${await _findLocalPath()}${Platform.pathSeparator}Download';
+    soundfilePath = File('$_localPath/evrad.mp3');
     hasSoundfilePath = await soundfilePath.exists();
     print('_localPath--------------------------------------------');
     print(_localPath);
   }
 
-Future<Null> _prepare() async {
-  _permissionReady = await _checkPermission();
-}
+  Future<void> _prepare() async {
+    _permissionReady = await _checkPermission();
+  }
 
   @override
   void initState() {
@@ -2464,14 +2478,14 @@ Future<Null> _prepare() async {
   @override
   void didChangeMetrics() {
     if (Platform.isAndroid) {
-      Future.delayed(Duration(milliseconds: 100), () {
+      Future.delayed(const Duration(milliseconds: 100), () {
         setState(() => pdfViewerKey = UniqueKey());
       });
     }
   }
 
-  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  SharedPreferences localStorage;
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  late SharedPreferences localStorage;
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
@@ -2488,6 +2502,9 @@ Future<Null> _prepare() async {
       case AppLifecycleState.detached:
         print('detached state');
         break;
+      case AppLifecycleState.hidden:
+        print('hidden state');
+        break;
     }
   }
 
@@ -2499,7 +2516,7 @@ Future<Null> _prepare() async {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       key: _key,
-      body: Container(
+      body: SizedBox(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         child: !_isVisible
@@ -2514,26 +2531,18 @@ Future<Null> _prepare() async {
                     pageFling: true,
                     defaultPage: currentPage,
                     fitPolicy: screen ? FitPolicy.BOTH : FitPolicy.WIDTH,
-                    onRender: (_pages) {
+                    onRender: (pages) {
                       setState(() {
-                        pages = _pages;
+                        pages = pages!;
                         isReady = true;
                         if (hasSoundfilePath) {
                           _assetsAudioPlayer.open(
-                              Audio.file(_localPath + '/evrad.mp3'),
+                              Audio.file('$_localPath/evrad.mp3'),
                               showNotification: true,
                               autoStart: false);
                           _assetsAudioPlayer.currentPosition.listen((data) {
-                            print(selectedDuration['endMinute'].toString() +
-                                ":" +
-                                selectedDuration['endSecond'].toString() +
-                                "---" +
-                                data.inMinutes.toString() +
-                                ":" +
-                                (data.inSeconds >= 60
-                                        ? data.inSeconds % 60
-                                        : data.inSeconds)
-                                    .toString());
+                            print(
+                                "${selectedDuration['endMinute']}:${selectedDuration['endSecond']}---${data.inMinutes}:${data.inSeconds >= 60 ? data.inSeconds % 60 : data.inSeconds}");
                             if (data.inMinutes.toString() ==
                                     selectedDuration['endMinute'].toString() &&
                                 (data.inSeconds >= 60
@@ -2545,7 +2554,7 @@ Future<Null> _prepare() async {
                               isplayingControl = true;
                               _Pdfcontroller.setPage(currentPage - 1);
                               Future.delayed(
-                                  Duration(milliseconds: 750), () {});
+                                  const Duration(milliseconds: 750), () {});
                             }
                           });
                         }
@@ -2567,24 +2576,23 @@ Future<Null> _prepare() async {
                       });
                       print('$page: ${error.toString()}');
                     },
-                    onViewCreated: (_controller) {
-                      _Pdfcontroller = _controller;
+                    onViewCreated: (controller) {
+                      _Pdfcontroller = controller;
                       iscreatedView = true;
-                      if (currentPage != null) _controller.setPage(currentPage);
+                      controller.setPage(currentPage);
                     },
-                    onPageChanged: (int page, int total) {
+                    onPageChanged: (int? page, int? total) {
                       print('page change: $page/$total');
                       setState(() {
-                        pages = page;
+                        pages = page!;
                         isReady = true;
-                        currentPageName = new Text(
-                            pageNames.elementAt(248 - page),
-                            style:
-                                TextStyle(fontSize: 16, color: Colors.white));
+                        currentPageName = Text(pageNames.elementAt(248 - page),
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.white));
                         int pageNumber = 248 - page;
-                        currentPageNumber = new Text("$pageNumber. Sayfa",
-                            style:
-                                TextStyle(fontSize: 11, color: Colors.white));
+                        currentPageNumber = Text("$pageNumber. Sayfa",
+                            style: const TextStyle(
+                                fontSize: 11, color: Colors.white));
                         currentPage = page;
 
                         if (iscreatedView == false) {
@@ -2598,7 +2606,7 @@ Future<Null> _prepare() async {
                           isplayingControl = false;
                         }
 
-                        totalPages = total;
+                        totalPages = total!;
                         iscreatedView = false;
                       });
                     },
@@ -2624,12 +2632,12 @@ Future<Null> _prepare() async {
                               Expanded(
                                 flex: 2,
                                 child: IconButton(
-                                  icon: Icon(
+                                  icon: const Icon(
                                     Icons.menu,
                                     color: Colors.white,
                                   ),
                                   onPressed: () {
-                                    _key.currentState.openDrawer();
+                                    _key.currentState?.openDrawer();
                                   },
                                 ),
                               ),
@@ -2639,22 +2647,22 @@ Future<Null> _prepare() async {
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Spacer(),
+                                    const Spacer(),
                                     currentPageName,
                                     currentPageNumber,
-                                    Spacer(),
+                                    const Spacer(),
                                   ],
                                 ),
                               ),
                               Expanded(
                                   flex: 2,
                                   child: IconButton(
-                                    icon: Icon(
+                                    icon: const Icon(
                                       Icons.details,
                                       color: Colors.white,
                                     ),
                                     onPressed: () {
-                                      _key.currentState.openEndDrawer();
+                                      _key.currentState?.openEndDrawer();
                                     },
                                   )),
                             ],
@@ -2674,45 +2682,39 @@ Future<Null> _prepare() async {
                           pageFling: true,
                           defaultPage: currentPage,
                           fitPolicy: screen ? FitPolicy.BOTH : FitPolicy.WIDTH,
-                          onRender: (_pages) {
+                          onRender: (pages) {
                             setState(() {
-                              pages = _pages;
+                              pages = pages;
                               isReady = true;
-                              if (hasSoundfilePath && selectedDuration == null) {
-                                if(_assetsAudioPlayer.isPlaying.value == false){
+                              if (hasSoundfilePath &&
+                                  selectedDuration == null) {
+                                if (_assetsAudioPlayer.isPlaying.value ==
+                                    false) {
                                   _assetsAudioPlayer.open(
-                                    Audio.file(_localPath + '/evrad.mp3'),
-                                    showNotification: true,
-                                    autoStart: false);
-                                _assetsAudioPlayer.currentPosition
-                                    .listen((data) {
-                                  print(selectedDuration['endMinute']
-                                          .toString() +
-                                      ":" +
-                                      selectedDuration['endSecond'].toString() +
-                                      "---" +
-                                      data.inMinutes.toString() +
-                                      ":" +
-                                      (data.inSeconds >= 60
-                                              ? data.inSeconds % 60
-                                              : data.inSeconds)
-                                          .toString());
-                                  if (data.inMinutes.toString() ==
-                                          selectedDuration['endMinute']
-                                              .toString() &&
-                                      (data.inSeconds >= 60
-                                                  ? data.inSeconds % 60
-                                                  : data.inSeconds)
-                                              .toString() ==
-                                          selectedDuration['endSecond']
-                                              .toString()) {
-                                    print("sonraki sayfa");
-                                    isplayingControl = true;
-                                    _Pdfcontroller.setPage(currentPage - 1);
-                                    Future.delayed(
-                                        Duration(milliseconds: 750), () {});
-                                  }
-                                });
+                                      Audio.file('$_localPath/evrad.mp3'),
+                                      showNotification: true,
+                                      autoStart: false);
+                                  _assetsAudioPlayer.currentPosition
+                                      .listen((data) {
+                                    print(
+                                        "${selectedDuration['endMinute']}:${selectedDuration['endSecond']}---${data.inMinutes}:${data.inSeconds >= 60 ? data.inSeconds % 60 : data.inSeconds}");
+                                    if (data.inMinutes.toString() ==
+                                            selectedDuration['endMinute']
+                                                .toString() &&
+                                        (data.inSeconds >= 60
+                                                    ? data.inSeconds % 60
+                                                    : data.inSeconds)
+                                                .toString() ==
+                                            selectedDuration['endSecond']
+                                                .toString()) {
+                                      print("sonraki sayfa");
+                                      isplayingControl = true;
+                                      _Pdfcontroller.setPage(currentPage - 1);
+                                      Future.delayed(
+                                          const Duration(milliseconds: 750),
+                                          () {});
+                                    }
+                                  });
                                 }
                               }
                             });
@@ -2733,24 +2735,23 @@ Future<Null> _prepare() async {
                             });
                             print('$page: ${error.toString()}');
                           },
-                          onViewCreated: (_controller) {
-                            _Pdfcontroller = _controller;
+                          onViewCreated: (controller) {
+                            _Pdfcontroller = controller;
                             iscreatedView = true;
-                            if (currentPage != null)
-                              _controller.setPage(currentPage);
+                            controller.setPage(currentPage);
                           },
-                          onPageChanged: (int page, int total) {
+                          onPageChanged: (int? page, int? total) {
                             print('page change: $page/$total');
                             setState(() {
-                              pages = page;
+                              pages = page!;
                               isReady = true;
-                              currentPageName = new Text(
+                              currentPageName = Text(
                                   pageNames.elementAt(248 - page),
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       fontSize: 16, color: Colors.white));
                               int pageNumber = 248 - page;
-                              currentPageNumber = new Text("$pageNumber. Sayfa",
-                                  style: TextStyle(
+                              currentPageNumber = Text("$pageNumber. Sayfa",
+                                  style: const TextStyle(
                                       fontSize: 11, color: Colors.white));
                               currentPage = page;
 
@@ -2765,21 +2766,21 @@ Future<Null> _prepare() async {
                                 isplayingControl = false;
                               }
 
-                              totalPages = total;
+                              totalPages = total!;
                               iscreatedView = false;
                             });
                           },
                         ),
                         errorMessage.isEmpty
                             ? !isReady
-                                ? Center(
+                                ? const Center(
                                     child: CircularProgressIndicator(),
                                   )
                                 : Container()
                             : Center(
                                 child: Text(
                                   errorMessage,
-                                  style: TextStyle(color: Colors.red),
+                                  style: const TextStyle(color: Colors.red),
                                 ),
                               ),
                         Positioned(
@@ -2800,11 +2801,11 @@ Future<Null> _prepare() async {
                 ],
               ),
       ),
-      drawer: Container(
+      drawer: SizedBox(
         width: 225,
         child: Drawer(
           child: Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               image: DecorationImage(
                 image: AssetImage("assets/images/nav_background.jpg"),
                 fit: BoxFit.cover,
@@ -2816,13 +2817,13 @@ Future<Null> _prepare() async {
                 SizedBox(
                   height: 145,
                   child: DrawerHeader(
-                    child: Container(),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       image: DecorationImage(
                           image: AssetImage("assets/images/wallpaper.jpg"),
                           fit: BoxFit.cover),
                       color: Color(0xFF2D45CB),
                     ),
+                    child: Container(),
                   ),
                 ),
                 ListTile(
@@ -2832,16 +2833,16 @@ Future<Null> _prepare() async {
                       Navigator.of(context).pop();
                     });
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.bookmark_border,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Ayraç',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -2856,16 +2857,16 @@ Future<Null> _prepare() async {
                           return DynamicDialog(_Pdfcontroller);
                         });
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.favorite_border,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Favoriler',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -2876,16 +2877,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(247);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Günlük Evrad',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -2896,16 +2897,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(229);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Cuma Evradı',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -2916,16 +2917,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(201);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Cumartesi Evradı',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -2936,11 +2937,11 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(180);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  title: Text(
+                  title: const Text(
                     'Pazar Evradı',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -2951,16 +2952,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(150);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Pazartesi Evradı',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -2971,16 +2972,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(129);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Salı Evradı',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -2991,16 +2992,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(106);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Çarşamba Evradı',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -3011,21 +3012,21 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(81);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Perşembe Evradı',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
                 ),
-                Divider(
+                const Divider(
                   height: 20,
                   thickness: 0.6,
                   indent: 2,
@@ -3041,16 +3042,16 @@ Future<Null> _prepare() async {
                           return MuellifDialog(_Pdfcontroller);
                         });
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.import_contacts,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Müellif',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -3064,16 +3065,16 @@ Future<Null> _prepare() async {
                           return AboutUsDialog(_Pdfcontroller);
                         });
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.info_outline,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Hakkında',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -3083,7 +3084,7 @@ Future<Null> _prepare() async {
           ),
         ),
       ),
-      endDrawer: Container(
+      endDrawer: SizedBox(
         width: 215,
         child: Drawer(
           child: Container(
@@ -3096,16 +3097,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(243);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Yasin-i Şerife',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -3116,16 +3117,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(234);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     "Esmâü'l Hüsnâ",
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -3136,16 +3137,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(209);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     "Esma'ün Nebi",
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -3156,16 +3157,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(143);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     "Hıfz Âyetleri",
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -3176,16 +3177,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(53);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     "Günlük Tesbihat",
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -3196,16 +3197,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(49);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     "Teberrük Dersi",
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -3216,16 +3217,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(24);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Kehf Suresi',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -3236,16 +3237,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(12);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Fetih Suresi',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -3256,16 +3257,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(8);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Vâkıa Suresi',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -3276,16 +3277,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(4);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Mülk Suresi',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -3296,16 +3297,16 @@ Future<Null> _prepare() async {
                     _Pdfcontroller.setPage(1);
                     Navigator.of(context).pop();
                   },
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.graphic_eq,
                     color: Color(0xFF2E44CB),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0.0,
                     horizontal: 16.0,
                   ),
                   dense: true,
-                  title: Text(
+                  title: const Text(
                     'Nebe Suresi',
                     style: TextStyle(color: Color(0xFF223598)),
                   ),
@@ -3318,10 +3319,10 @@ Future<Null> _prepare() async {
       bottomNavigationBar: !_isVisible
           ? null
           : AnimatedContainer(
-              duration: Duration(milliseconds: 500),
+              duration: const Duration(milliseconds: 500),
               height: 50,
               child: BottomAppBar(
-                shape: CircularNotchedRectangle(),
+                shape: const CircularNotchedRectangle(),
                 color: themeColor,
                 elevation: 5,
                 child: Container(
@@ -3329,7 +3330,7 @@ Future<Null> _prepare() async {
                     widthFactor: 1.1,
                     child: Row(
                       children: <Widget>[
-                        Spacer(
+                        const Spacer(
                           flex: 2,
                         ),
                         IconButton(
@@ -3348,42 +3349,41 @@ Future<Null> _prepare() async {
                             color: mealColor,
                           ),
                         ),
-                        Spacer(),
+                        const Spacer(),
                         IconButton(
                           onPressed: showMenu,
                           color: themeColor,
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.av_timer,
                             color: Colors.white,
                           ),
                         ),
-                        Spacer(),
+                        const Spacer(),
                         IconButton(
                           color: themeColor,
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.playlist_add,
                             color: Colors.white,
                           ),
                           onPressed: () async {
                             final SharedPreferences prefs = await _prefs;
                             List<String> listNames =
-                                await prefs.getStringList("favListNames") ??
-                                    new List<String>();
-                            listNames.add(currentPageName.data +
-                                "\n" +
-                                currentPageNumber.data);
+                                prefs.getStringList("favListNames") ??
+                                    <String>[];
+                            listNames.add(
+                                "${currentPageName.data}\n${currentPageNumber.data}");
                             prefs.setStringList("favListNames", listNames);
 
                             List<String> listPages =
-                                await prefs.getStringList("favListPages") ??
-                                    new List<String>();
+                                prefs.getStringList("favListPages") ??
+                                    <String>[];
                             listPages.add(currentPage.toString());
                             prefs.setStringList("favListPages", listPages);
 
                             showToast("Favorilere Eklendi");
                           },
                         ),
-                        Spacer(
+                        const Spacer(
                           flex: 4,
                         ),
                       ],
@@ -3397,27 +3397,28 @@ Future<Null> _prepare() async {
       floatingActionButton: !_isVisible
           ? null
           : FloatingActionButton(
-              child: Icon(icon),
               backgroundColor: Colors.orange,
               onPressed: () {
                 _requestDownload();
-                if(hasSoundfilePath){
+                if (hasSoundfilePath) {
                   setState(() {
-                  if (pageplaying == false) {
-                    selectedDuration =
-                        pageSoundDurations.elementAt(248 - currentPage);
-                    _assetsAudioPlayer.seek(Duration(
-                        minutes: selectedDuration['startMinute'],
-                        seconds: selectedDuration['startSecond'],
-                        milliseconds: selectedDuration['startMilliSecond']));
-                    pageplaying = true;
-                  }
-                  icon =
-                      icon == Icons.play_arrow ? Icons.pause : Icons.play_arrow;
-                });
-                _assetsAudioPlayer.playOrPause();
+                    if (pageplaying == false) {
+                      selectedDuration =
+                          pageSoundDurations.elementAt(248 - currentPage);
+                      _assetsAudioPlayer.seek(Duration(
+                          minutes: selectedDuration['startMinute'],
+                          seconds: selectedDuration['startSecond'],
+                          milliseconds: selectedDuration['startMilliSecond']));
+                      pageplaying = true;
+                    }
+                    icon = icon == Icons.play_arrow
+                        ? Icons.pause
+                        : Icons.play_arrow;
+                  });
+                  _assetsAudioPlayer.playOrPause();
                 }
               },
+              child: Icon(icon),
             ),
     );
   }
@@ -3432,11 +3433,12 @@ Future<Null> _prepare() async {
     prefs.setInt("bookmark", currentPage);
   }
 
-  void showToast(String msg, {int duration}) {
-    Toast.show(msg, context, duration: duration, gravity: Toast.BOTTOM);
+  void showToast(String msg, {int? duration}) {
+    Toast.show(msg, duration: duration, gravity: Toast.bottom);
   }
-bool _permissionReady = false;
-Future<bool> _checkPermission() async {
+
+  bool _permissionReady = false;
+  Future<bool> _checkPermission() async {
     if (Platform.isAndroid) {
       final status = await Permission.storage.status;
       if (status != PermissionStatus.granted) {
@@ -3453,12 +3455,11 @@ Future<bool> _checkPermission() async {
     return false;
   }
 
-
   Future<String> _findLocalPath() async {
     final directory = Platform.isAndroid
         ? await getExternalStorageDirectory()
         : await getApplicationDocumentsDirectory();
-    return directory.path;
+    return directory!.path;
   }
 
   void _requestDownload() async {
@@ -3466,10 +3467,9 @@ Future<bool> _checkPermission() async {
       _permissionReady = await _checkPermission();
     } else {
       bool hasExisted;
-      _localPath =
-          (await _findLocalPath()) + Platform.pathSeparator + 'Download';
+      _localPath = '${await _findLocalPath()}${Platform.pathSeparator}Download';
       final savedDir = Directory(_localPath);
-      soundfilePath = File(_localPath + '/evrad.mp3');
+      soundfilePath = File('$_localPath/evrad.mp3');
       await soundfilePath.exists().then((bool value) async {
         hasSoundfilePath = value;
         await savedDir.exists().then((bool existedvalue) async {
@@ -3490,12 +3490,10 @@ Future<bool> _checkPermission() async {
   }
 
   showAlertDialog(BuildContext context) async {
-    List<Widget> favItems = new List<Widget>();
+    List<Widget> favItems = <Widget>[];
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> listNames =
-        prefs.getStringList("favListNames") ?? new List<String>();
-    List<String> listPages =
-        prefs.getStringList("favListPages") ?? new List<String>();
+    List<String> listNames = prefs.getStringList("favListNames") ?? <String>[];
+    List<String> listPages = prefs.getStringList("favListPages") ?? <String>[];
     for (int i = 0; i < listNames.length; i++) {
       String value = listNames.elementAt(i);
       favItems.add(ListTile(
@@ -3503,14 +3501,14 @@ Future<bool> _checkPermission() async {
             _Pdfcontroller.setPage(int.parse(listPages.elementAt(i)));
             Navigator.of(context).pop();
           },
-          leading: Icon(Icons.favorite_border),
+          leading: const Icon(Icons.favorite_border),
           dense: true,
           title: Align(
-            child: Text('$value'),
-            alignment: Alignment(-1.3, 0),
+            alignment: const Alignment(-1.3, 0),
+            child: Text(value),
           ),
-          trailing: new IconButton(
-            icon: Icon(Icons.delete),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete),
             onPressed: () {
               listPages.removeAt(i);
               listNames.removeAt(i);
@@ -3521,7 +3519,7 @@ Future<bool> _checkPermission() async {
               });
             },
           ),
-          contentPadding: EdgeInsets.symmetric(horizontal: 20.0)));
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20.0)));
     }
 
     SimpleDialog dialog = SimpleDialog(
@@ -3546,8 +3544,8 @@ Future<bool> _checkPermission() async {
             return Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(13),
-                color: Color(0xff223598),
-                boxShadow: [
+                color: const Color(0xff223598),
+                boxShadow: const [
                   BoxShadow(color: Color(0xff223598), spreadRadius: 4),
                 ],
               ),
@@ -3561,7 +3559,7 @@ Future<bool> _checkPermission() async {
                     SizedBox(
                       height: 120,
                       child: Container(
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(16.0),
                               topRight: Radius.circular(16.0),
@@ -3569,12 +3567,12 @@ Future<bool> _checkPermission() async {
                             color: Color(0xff2e44cb),
                           ),
                           child: Stack(
-                            alignment: Alignment(0, 0),
-                            overflow: Overflow.visible,
+                            clipBehavior: Clip.none,
+                            alignment: const Alignment(0, 0),
                             children: <Widget>[
                               Positioned(
                                 top: -26,
-                                child: Container(
+                                child: SizedBox(
                                   height: 60,
                                   child: CircleAvatar(
                                     radius: 50,
@@ -3582,7 +3580,7 @@ Future<bool> _checkPermission() async {
                                     child: Center(
                                         child: Text(
                                       readSpeed.toStringAsFixed(2),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         color: Colors.white,
                                       ),
                                     )),
@@ -3592,8 +3590,8 @@ Future<bool> _checkPermission() async {
                               Positioned(
                                 child: ListView(
                                   children: <Widget>[
-                                    Padding(
-                                        padding: const EdgeInsets.only(top: 45),
+                                    const Padding(
+                                        padding: EdgeInsets.only(top: 45),
                                         child: Text(
                                           'OKUMA HIZI',
                                           textAlign: TextAlign.center,
@@ -3631,6 +3629,8 @@ Future<bool> _checkPermission() async {
 }
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }
@@ -3640,7 +3640,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("assets/images/splash.jpg"),
             fit: BoxFit.cover,
@@ -3658,19 +3658,19 @@ class _SplashScreenState extends State<SplashScreen> {
 
 class MuellifDialog extends StatefulWidget {
   final PDFViewController pdfcontroller;
-  MuellifDialog(this.pdfcontroller);
+  const MuellifDialog(this.pdfcontroller, {super.key});
   @override
   _MuellifDialogState createState() => _MuellifDialogState();
 }
 
 class _MuellifDialogState extends State<MuellifDialog> {
-  List<Widget> bodyText = new List<Widget>();
+  List<Widget> bodyText = <Widget>[];
   @override
   void initState() {
     super.initState();
     bodyText.add(Container(
         margin: const EdgeInsets.all(10.0),
-        child: Text(
+        child: const Text(
             "1950 sonrası Türkiye sosyal ve siyasi tarihinin en etkin ismi 1897 yılında Bursa'da dünyaya geldi. Tahsil hayatı, askerliği, 1. Dünya savaşına iştiraki, Bursa'daki imamlık vazifesi sonrası 1952 de İstanbul'a kalıcı olarak geldi ve tabiri caiz ise Türkiye'nin evrileceği yeni yöne dair çalışmalar başladı. \n\n 6 yıl boyunca Zeyrek Ümmü Gülsüm camiinde imamlık yaptı ve ikindi sonrası sohbetler verdi. Bu sohbetlerde 'Müslümanlığın sadece ibadet ve inanç (akaid) sistemi değil, tüm hayatı değiştiren bir yaşam biçimi olduğu' nu işledi. Tek parti dönemi sonrası Müslümanlar için ulvi bir hedef olan bu görüş, bir güneş gibi ufuktan parladı ve İstanbul'un tüm üniversitelerinden en seçkin öğrenciler bu güneşe doğru akın akın geldi. İTÜ, Boğaziçi, Yıldız ve diğer üniversite öğrencileri gerek Zeyrek Camii'ne, gerek (1958 sonrası) İskenderPaşa Camii'ne bu ismi dinlemeye geliyor, yapılan Ramuz el-Ehadis derslerini dinliyor, müslüman kardeşliğinin lezzetini tadıyor ve müslüman bir nizama göre hayatlarını yeniden yapılandırıyordu. \n\n Uzun zaman geçmeden bu bakış açısı tüm Türkiye'de yankı buldu. Yabancıların ürettiği ilaçların kullanılmaması,  yabancı arabalara binilmemesi öğütleniyor. ilacımızı, arabamızı, silahımızı kısaca her türlü imkan ve teknolojiyi ithal etmek yerine bunların ülkemiz insanlari tarafından üretilmesi sohbetlerde işleniyordu. En farklı ve vizyoner bu anlayış tarzı yurdun dört bir tarafından müslümanların kendini bulduğu adeta bir 'Marka' oldu. Pazar sohbetleri sebebiyle cumartesi akşamdan şehir dışından binilen otobüsler pazar sabah Topkapı otogarında oluyor, inen insanlar İskenderpaşa Camiine akın akın geliyor. Sohbet çıkışınd ise Fatih'in ana ve yan caddeleri mecburen trafiğe kapanıyordu. \n\n Bu vizyon ile yoğrulan öğrencileri Türkiye'de bu değişimi yapmak, müslümanlığı bir yaşam tarzı haline getirmek için yönetime talip oldu ve aralarından 4 Başbakan, 3 Cumhurbaşkanı, sayısız bakanlar, millet vekilleri, belediye başkanları, bürokratlar, teknokratlar çıktı. \n\n Halen bıraktığı kitaplar, sohbet kayıtları ve örnek uygulamaları ile bizlere müslümanlığın en basit işten en komplekse her yerde, evde, işte, seyahatte, ikili ve aile ilişkilerinde ve hayatın tüm alanında bir yaşam biçimi olduğunu anlatan bu marka Mehmed Zahid Kotku Rahmetullahi Aleyhtir. \n\n Verdiği eşsiz vizyon ile müslümanlara yüklediği bu ulvi misyon, halen tam ulaşılamamış bir hedef olarak biz müslümanların ufkunda durmaktadır. \n\n Hayatta iken Hak yoldaki gayretleri ve bu yola feda ettiği tüm hayatı, şehadetimize gerek kalmaksızın milyonlar tarafından görülmekte idi. Allah Z.C.'in, Mehmed Zahid Kotku Hazretleri'nin derecesini âli, makamını ulyâ eylemesi ve bizleri şefaatine mazhar eylemesi içten duamızdır. Kendisini, hayatını, gayretini ve biz müslümanlara biçtiği gayeyi tam olarak anlamamız duası ile.",
             textAlign: TextAlign.justify,
             style: TextStyle(color: Color(0xFF223598), fontSize: 11))));
@@ -3686,24 +3686,21 @@ class _MuellifDialogState extends State<MuellifDialog> {
   }
 }
 
-
-
-
 class AreyousureDialog extends StatefulWidget {
   final PDFViewController pdfcontroller;
-  AreyousureDialog(this.pdfcontroller);
+  const AreyousureDialog(this.pdfcontroller, {super.key});
   @override
   _AreyousureDialogState createState() => _AreyousureDialogState();
 }
 
 class _AreyousureDialogState extends State<AreyousureDialog> {
-  List<Widget> bodyText = new List<Widget>();
+  List<Widget> bodyText = <Widget>[];
   @override
   void initState() {
     super.initState();
     bodyText.add(Container(
         margin: const EdgeInsets.all(10.0),
-        child: Text(
+        child: const Text(
             "490mb boyutundaki ses dosyasını indirmek istediğinize emin misiniz?",
             textAlign: TextAlign.center,
             style: TextStyle(color: Color(0xFF223598), fontSize: 13))));
@@ -3715,7 +3712,7 @@ class _AreyousureDialogState extends State<AreyousureDialog> {
           foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
         ),
         onPressed: () => Navigator.pop(context, true),
-        child: Text('İPTAL'),
+        child: const Text('İPTAL'),
       ),
       TextButton(
         style: ButtonStyle(
@@ -3725,7 +3722,7 @@ class _AreyousureDialogState extends State<AreyousureDialog> {
         onPressed: () {
           downloadmp3();
         },
-        child: Text('İNDİR'),
+        child: const Text('İNDİR'),
       ),
     ]));
   }
@@ -3736,14 +3733,14 @@ class _AreyousureDialogState extends State<AreyousureDialog> {
       status: 'Ses dosyası indiriliyor...',
       maskType: EasyLoadingMaskType.black,
     );
-    downloadTask = await FlutterDownloader.enqueue(
+    downloadTask = (await FlutterDownloader.enqueue(
         url: 'http://evradiserif.com/AppFiles/evrad.mp3',
         savedDir: _localPath,
-        showNotification: true);
+        showNotification: true))!;
     print('----------------------------------------------------');
-    Timer.periodic(Duration(seconds: 1), (timer) async {
+    Timer.periodic(const Duration(seconds: 1), (timer) async {
       var tasks = await FlutterDownloader.loadTasks();
-      var task = tasks.firstWhere((task) => task.taskId == downloadTask);
+      var task = tasks!.firstWhere((task) => task.taskId == downloadTask);
       setState(() {
         if (task.progress == 100) {
           timer.cancel();
@@ -3751,17 +3748,11 @@ class _AreyousureDialogState extends State<AreyousureDialog> {
           hasSoundfilePath = true;
           currentPage = 248;
           _Pdfcontroller.setPage(248);
-          _assetsAudioPlayer.open(Audio.file(_localPath + '/evrad.mp3'),
+          _assetsAudioPlayer.open(Audio.file('$_localPath/evrad.mp3'),
               showNotification: true, autoStart: false);
           _assetsAudioPlayer.currentPosition.listen((data) {
-            print(selectedDuration['endMinute'].toString() +
-                ":" +
-                selectedDuration['endSecond'].toString() +
-                "---" +
-                data.inMinutes.toString() +
-                ":" +
-                (data.inSeconds >= 60 ? data.inSeconds % 60 : data.inSeconds)
-                    .toString());
+            print(
+                "${selectedDuration['endMinute']}:${selectedDuration['endSecond']}---${data.inMinutes}:${data.inSeconds >= 60 ? data.inSeconds % 60 : data.inSeconds}");
             if (data.inMinutes.toString() ==
                     selectedDuration['endMinute'].toString() &&
                 (data.inSeconds >= 60 ? data.inSeconds % 60 : data.inSeconds)
@@ -3770,7 +3761,7 @@ class _AreyousureDialogState extends State<AreyousureDialog> {
               print("sonraki sayfa");
               isplayingControl = true;
               _Pdfcontroller.setPage(currentPage - 1);
-              Future.delayed(Duration(milliseconds: 750), () {});
+              Future.delayed(const Duration(milliseconds: 750), () {});
             }
           });
         }
@@ -3788,23 +3779,21 @@ class _AreyousureDialogState extends State<AreyousureDialog> {
   }
 }
 
-
-
 class AboutUsDialog extends StatefulWidget {
   final PDFViewController pdfcontroller;
-  AboutUsDialog(this.pdfcontroller);
+  const AboutUsDialog(this.pdfcontroller, {super.key});
   @override
   _AboutUsDialogState createState() => _AboutUsDialogState();
 }
 
 class _AboutUsDialogState extends State<AboutUsDialog> {
-  List<Widget> bodyText = new List<Widget>();
+  List<Widget> bodyText = <Widget>[];
   @override
   void initState() {
     super.initState();
     bodyText.add(Container(
         margin: const EdgeInsets.all(10.0),
-        child: Text(
+        child: const Text(
             "Hibbü Resulullah (Resûlullah’ın sevdiği kişi) lakabıyla şöhret kazanan Hz. Üsame R.A'a, oradan da Hz. Peygamber (sav) Efendimize dayanan bu Evrad-ı Şerifin oluşturulmasındaki temel şöyledir: \n\n Hz. Üsame (ra) bir gün Acemistan'ın (bugünkü İran) İsfahan şehrine gittiklerinde sapık bir kavim tarafından alıkonulur ve kendisine şiddetli işkenceler yapılır. Bu alıkonulma ve işkence esnasında Peygamberimiz (sav) Hz. Üsame'nin rüyasına teşfir buyurur ve Üsame kalk ve Kuran'ı Kerimi eline al. Ondan haftanın her günü için bir evrad tertip et ve o evrada devam et. Muhakkak bu okuyacakların ile hapisten çıkar ve daha iyi bir hale erişirsin buyururlar. \n\n Hz. Üsame Efendimize (ra) Cuma günü için hamd ayetlerini, Cumartesi için istiğfar ayetlerini, Pazar için tesbih ayetlerini, Pazartesi için tevekkül ayetlerini, Salı için selamet ayetlerini, Çarşamba için tehlil ayetlerini ve Perşembe için Cuma ayetlerini toplaması tavsiye edilmiş. Üsame Efendimiz de ayetleri toplayıp evrad haline getirmiş ve okumaya başlamış. Allah ZC'in izni ile kısa sürede hapisten kurtulmuş ve daha iyi bir hale ulaşmışlar. \n\n Mehmed Zahid Kotku Hazretleri tarafından Peygamberimiz (sav) Hazretlerinin attığı bu temel evrad üzerine bina edilen Evrad-ı Şerif birçok önemli evrad ve duaları içermektedir. Hz. Ali (ra) efendimizin evradı, ahmed ziyauddin hazretlerinin muhtesem eseri Mecmuatül ahzab, Kütüb-i Sitte ve Ramuz-el Ehadis'ten alınan dualar, yine Kuran-ı Kerim'de Allah ZC Hazretleri'nin bizlere öğrettiği dualar ve birçok ayeti kerime ve nice büyüklerin tecrübe edilmiş duaları elinizdeki evradın muhtevasıdır. Bu eşsiz muhtevanın herbirinin kaynağında belirtilen okunması sonrası  elde edilecek müjdeleri pek geniştir, hem dünyaya hem de ahirete yönelik ve şaşırtıcı derecede engindir. Bu müjdeler ancak ayrı ve hacimli bir eser ile anlatılabilir. Gününde okunan Ayet-i kerime'ler, dualar ve belli sayıdaki zikirlerin Havâsi zenginliği ve etkisi ise ancak erbabınca malumdur. \n\n Evrad-ı Şerif Mehmed Zahid Kotku Hazretleri tarafından son şekli verildiği halde, üzerinde hiçbir değişiklik yapılmadan sizlerin istifadesine sunulmuştur. \n\n Bize bu değerli Evradı Şerifi hediyesi sebebiyle Mehmet Zahid Kotku Hazretlerine layıkıyla teşekkürden aciziz. Tüm varlığı ile ömrü boyunca insanlık için çalışan, hem maddi hem manevi olarak Türkiye'de büyük müsbet değişimleri yapan/başlatan Mehmed Zahid kotku Hazretleri'nin Hak katındaki derecesinin âli, makamının ulyâ olması, ahirette de şefaatçimiz olması nacizane istek ve duamızdır. Sözlerimizi yine Mehmed Zahid Kotku Hazretlerinin kendi dilinden Evradı Şerife ile ilgili yazdığı şu sözler ile sonlandırırız. \n\n Abdest alarak tam bir ihlas ile okuyacağınız dualarınızı Cenab-ı Hak kabul buyursun. Peygamberimiz(sav) şefaatçimiz olsun. \n\n Dualarınızla bizim de Hak'kın rızasına nail olmamıza sebep olursunuz.",
             textAlign: TextAlign.justify,
             style: TextStyle(color: Color(0xFF223598), fontSize: 11))));
@@ -3822,13 +3811,13 @@ class _AboutUsDialogState extends State<AboutUsDialog> {
 
 class DynamicDialog extends StatefulWidget {
   final PDFViewController pdfcontroller;
-  DynamicDialog(this.pdfcontroller);
+  const DynamicDialog(this.pdfcontroller, {super.key});
   @override
   _DynamicDialogState createState() => _DynamicDialogState();
 }
 
 class _DynamicDialogState extends State<DynamicDialog> {
-  List<Widget> favItems = new List<Widget>();
+  List<Widget> favItems = <Widget>[];
   @override
   void initState() {
     super.initState();
@@ -3836,42 +3825,40 @@ class _DynamicDialogState extends State<DynamicDialog> {
   }
 
   getItem() async {
-    List<Widget> _favItems = new List<Widget>();
+    List<Widget> favItems = <Widget>[];
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> listNames =
-        prefs.getStringList("favListNames") ?? new List<String>();
-    List<String> listPages =
-        prefs.getStringList("favListPages") ?? new List<String>();
+    List<String> listNames = prefs.getStringList("favListNames") ?? <String>[];
+    List<String> listPages = prefs.getStringList("favListPages") ?? <String>[];
     for (int i = 0; i < listNames.length; i++) {
       String value = listNames.elementAt(i);
-      _favItems.add(ListTile(
+      favItems.add(ListTile(
           onTap: () {
             widget.pdfcontroller.setPage(int.parse(listPages.elementAt(i)));
             Navigator.of(context).pop();
           },
-          leading: Icon(Icons.favorite_border),
+          leading: const Icon(Icons.favorite_border),
           dense: true,
           title: Align(
-            child: Text('$value'),
-            alignment: Alignment(-1.3, 0),
+            alignment: const Alignment(-1.3, 0),
+            child: Text(value),
           ),
-          trailing: new IconButton(
-            icon: Icon(Icons.delete),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete),
             onPressed: () {
               listPages.removeAt(i);
               listNames.removeAt(i);
               prefs.setStringList("favListNames", listNames);
               prefs.setStringList("favListPages", listPages);
               setState(() {
-                _favItems.removeAt(i);
+                favItems.removeAt(i);
               });
               getItem();
             },
           ),
-          contentPadding: EdgeInsets.symmetric(horizontal: 20.0)));
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20.0)));
 
       setState(() {
-        favItems = _favItems;
+        favItems = favItems;
       });
     }
   }
