@@ -13,6 +13,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -133,7 +134,7 @@ class _HomePageState extends State<HomePage> {
     print("build called");
     FlutterNativeSplash.remove();
     return pathPDF == null
-        ? const Text('PathPDF not set')
+        ? const Text('')
         : FutureBuilder(
             future: pathPDF,
             builder: (context, snapshot) {
@@ -3493,19 +3494,26 @@ class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
   bool _permissionReady = false;
   Future<bool> _checkPermission() async {
     if (Platform.isAndroid) {
-      final status = await Permission.storage.status;
-      if (status != PermissionStatus.granted) {
-        final result = await Permission.storage.request();
-        if (result == PermissionStatus.granted) {
+      DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+      final androidInfo = await deviceInfoPlugin.androidInfo;
+      if (androidInfo.version.sdkInt > 32) {
+        return true;
+      } else {
+        final status = await Permission.storage.status;
+        if (status != PermissionStatus.granted) {
+          final result = await Permission.storage.request();
+          if (result == PermissionStatus.granted) {
+            return true;
+          } else {
+            return true;
+          }
+        } else {
           return true;
         }
-      } else {
-        return true;
       }
     } else {
       return true;
     }
-    return false;
   }
 
   Future<String> _findLocalPath() async {
