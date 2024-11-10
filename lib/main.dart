@@ -46,10 +46,21 @@ class MyAppStart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ToastContext().init(context);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: const HomePage(),
       builder: EasyLoading.init(),
+      // builder: (context, child) {
+      //   return Overlay(
+      //     initialEntries: [
+      //       OverlayEntry(
+      //         builder: (context) => LayoutTemplate(child: child),
+      //       ),
+      //     ],
+      //   );
+      // },
+      // initialRoute:"/home",
     );
   }
 }
@@ -2750,23 +2761,25 @@ class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
                                       autoStart: false);
                                   _assetsAudioPlayer.currentPosition
                                       .listen((data) {
-                                    print(
-                                        "${selectedDuration['endMinute']}:${selectedDuration['endSecond']}---${data.inMinutes}:${data.inSeconds >= 60 ? data.inSeconds % 60 : data.inSeconds}");
-                                    if (data.inMinutes.toString() ==
-                                            selectedDuration['endMinute']
-                                                .toString() &&
-                                        (data.inSeconds >= 60
-                                                    ? data.inSeconds % 60
-                                                    : data.inSeconds)
-                                                .toString() ==
-                                            selectedDuration['endSecond']
-                                                .toString()) {
-                                      print("sonraki sayfa");
-                                      isplayingControl = true;
-                                      _Pdfcontroller.setPage(currentPage - 1);
-                                      Future.delayed(
-                                          const Duration(milliseconds: 750),
-                                          () {});
+                                    if (selectedDuration != null) {
+                                      print(
+                                          "${selectedDuration['endMinute']}:${selectedDuration['endSecond']}---${data.inMinutes}:${data.inSeconds >= 60 ? data.inSeconds % 60 : data.inSeconds}");
+                                      if (data.inMinutes.toString() ==
+                                              selectedDuration['endMinute']
+                                                  .toString() &&
+                                          (data.inSeconds >= 60
+                                                      ? data.inSeconds % 60
+                                                      : data.inSeconds)
+                                                  .toString() ==
+                                              selectedDuration['endSecond']
+                                                  .toString()) {
+                                        print("sonraki sayfa");
+                                        isplayingControl = true;
+                                        _Pdfcontroller.setPage(currentPage - 1);
+                                        Future.delayed(
+                                            const Duration(milliseconds: 750),
+                                            () {});
+                                      }
                                     }
                                   });
                                 }
@@ -3433,8 +3446,8 @@ class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
                                     <String>[];
                             listPages.add(currentPage.toString());
                             prefs.setStringList("favListPages", listPages);
-
-                            showToast("Favorilere Eklendi");
+                            EasyLoading.showToast("Favorilere Eklendi");
+                            // showToast("Favorilere Eklendi");
                           },
                         ),
                         const Spacer(
@@ -3453,6 +3466,7 @@ class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
           : FloatingActionButton(
               backgroundColor: Colors.orange,
               onPressed: () {
+                selectedDuration ??= pageSoundDurations.elementAt(2);
                 _requestDownload();
                 if (hasSoundfilePath) {
                   setState(() {
@@ -3493,10 +3507,11 @@ class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
 
   bool _permissionReady = false;
   Future<bool> _checkPermission() async {
+    //READ_PHONE_STATE
     if (Platform.isAndroid) {
       DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
       final androidInfo = await deviceInfoPlugin.androidInfo;
-      if (androidInfo.version.sdkInt > 32) {
+      if (androidInfo.version.sdkInt >= 32) {
         return true;
       } else {
         final status = await Permission.storage.status;
@@ -3505,7 +3520,7 @@ class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
           if (result == PermissionStatus.granted) {
             return true;
           } else {
-            return true;
+            return false;
           }
         } else {
           return true;
@@ -3590,6 +3605,7 @@ class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
     );
 
     showDialog(
+      // ignore: use_build_context_synchronously
       context: context,
       builder: (BuildContext context) {
         return dialog;
@@ -3795,7 +3811,8 @@ class _AreyousureDialogState extends State<AreyousureDialog> {
       maskType: EasyLoadingMaskType.black,
     );
     downloadTask = (await FlutterDownloader.enqueue(
-        url: 'https://evradiserif.com/AppFiles/evrad.mp3',
+        url: 'http://evradiserif.com/AppFiles/evrad.mp3',
+        //url: 'http://192.168.1.97/evrad.mp3',
         savedDir: _localPath,
         showNotification: true))!;
     print('----------------------------------------------------');
@@ -3806,11 +3823,13 @@ class _AreyousureDialogState extends State<AreyousureDialog> {
         if (task.progress == 100) {
           timer.cancel();
           EasyLoading.dismiss();
+          Navigator.pop(context, true);
           hasSoundfilePath = true;
           currentPage = 248;
           _Pdfcontroller.setPage(248);
           _assetsAudioPlayer.open(Audio.file('$_localPath/evrad.mp3'),
               showNotification: true, autoStart: false);
+
           _assetsAudioPlayer.currentPosition.listen((data) {
             print(
                 "${selectedDuration['endMinute']}:${selectedDuration['endSecond']}---${data.inMinutes}:${data.inSeconds >= 60 ? data.inSeconds % 60 : data.inSeconds}");
